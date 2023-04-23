@@ -1,0 +1,44 @@
+from selenium import webdriver
+import pandas as pd
+
+def get_set_50():
+    driver = webdriver.Chrome("/Users/chayut/Desktop/Working\ directory/chromedriver")
+    driver.get("https://www.set.or.th/th/market/index/set50/overview")
+    
+    return driver
+    
+def get_set_50_df(driver):
+    set_50_page_data = driver.page_source
+    set_50_df = pd.read_html(set_50_page_data)[1]
+    column_name = []
+    
+    for n in set_50_df.columns:
+        column_name.append(n.replace("  (Click to sort Ascending)",""))
+        
+    set_50_df.columns = column_name
+    set_50_df = set_50_df.set_index("หลักทรัพย์")
+    return set_50_df
+    
+    
+def get_stock_data(stock,stock_dict,driver):    
+    stock = stock.split()[0]
+    url = "https://www.set.or.th/th/market/product/stock/quote/"+ stock +"/financial-statement/company-highlights"
+    driver.get(url)
+    stock_page_data = driver.page_source
+    financial = pd.read_html(stock_page_data)[0]
+    price_stat = pd.read_html(stock_page_data)[1]
+    stock_dict[stock] = [financial,price_stat]
+    return stock_dict,driver
+    
+    
+driver = get_set_50()
+
+set_50_df = get_set_50_df(driver)
+
+stock_dict = dict()
+for stock in set_50_df.index:
+    stock_dict,driver = get_stock_data(stock,stock_dict,driver)
+    
+    
+    
+    
